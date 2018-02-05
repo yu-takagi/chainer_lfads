@@ -124,59 +124,11 @@ def train(model, dataset, optimizer, dest_dir, batch_size=128, max_epoch=None, g
         status['kl_u_total'] = '{:.4}'.format(float(kl_u_total.data))    # KL-divergence loss
         logger.info(_status_str(status))
 
-        # test
-        # total_test_loss = 0
-        # total_rec_loss = 0
-        # total_kl_loss = 0
-        # for i, batch in enumerate(batches_test):
-        #     x_data, label_x_data, t_data, label_t_data = batch
-        #     # copy data to GPU
-        #     if gpu is not None:
-        #         x_data = cuda.to_gpu(x_data)
-        #         label_x_data = cuda.to_gpu(label_x_data)
-        #         if t_data is not None:
-        #             t_data = cuda.to_gpu(t_data)
-        #             label_t_data = cuda.to_gpu(label_t_data)
-        #     # create variable
-        #     xs = create_variables(x_data)
-        #     x_label = Variable(label_x_data)
-        #     if t_data is None:
-        #         # unsupervised
-        #         ts = xs
-        #         t_label = x_label
-        #     else:
-        #         # supervised
-        #         ts = create_variables(t_data)
-        #         t_label = Variable(label_t_data)
-        #     rec_loss, kl = model(xs, x_label, ts, t_label, True)
-        #     total_test_loss += rec_loss + kl
-        #     total_rec_loss += rec_loss
-        #     total_kl_loss += kl
-
-        # status_test = OrderedDict()
-        # total_test_loss = total_test_loss.data / len(batches_test)
-        # total_rec_loss = total_rec_loss.data / len(batches_test)
-        # total_kl_loss = total_kl_loss.data / len(batches_test)
-        # status_test['total_test_loss'] = total_test_loss
-        # status_test['total_rec_loss'] = total_rec_loss
-        # status_test['total_kl_loss'] = total_kl_loss
-        # if gpu is not None:
-        #     test_losses.append((cuda.to_cpu(total_test_loss),cuda.to_cpu(total_rec_loss),cuda.to_cpu(total_kl_loss)))
-        # else:
-        #     test_losses.append((total_test_loss,total_rec_loss,total_kl_loss))
-        # logger.info(_status_str(status_test))
-        # with open('./logs/vae_' + dest_dir + '.pickle', mode='wb') as f:
-        #     pickle.dump(test_losses, f)
-
         # # save model
         if epoch % save_every == 0 or (max_epoch is not None and epoch == max_epoch - 1):
             model.save(dest_dir, epoch)
 
         epoch += 1
-
-
-def _create_variables(x_data):
-    return [Variable(x_data)]
 
 def _status_str(status):
     lst = []

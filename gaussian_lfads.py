@@ -10,7 +10,6 @@ from chainer.functions import gaussian_nll
 from chainer.functions.math import exponential
 from chainer import cuda, Variable
 import cupy
-import pickle
 
 class GaussianEncoder(lfads.Encoder):
 

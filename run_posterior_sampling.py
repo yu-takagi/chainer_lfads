@@ -23,7 +23,6 @@ def main(args):
         cuda.get_device(args.gpu).use()
         model.to_gpu(args.gpu)
 
-    # train_data = train_data[:5,:,:]
     # posterior sampling
     # encoder
     ndata = train_data.shape[0]

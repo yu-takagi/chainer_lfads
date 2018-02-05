@@ -52,13 +52,6 @@ class LFADS(Chain):
     def __call__(self, xs, label_in, ts, label_out,test=False):
         raise NotImplementedError
 
-    def generate(self,z_dim,n_sample):
-        mus = np.zeros((n_sample,z_dim)).astype(np.float32)
-        sigmas = np.ones((n_sample,z_dim)).astype(np.float32)
-        z = F.gaussian(Variable(mus), Variable(sigmas))
-        xs_gen = self.decoder.generate(z)
-        return xs_gen
-
     def save_model_def(self, model_base_path):
         obj = copy.deepcopy(self)
         for p in obj.params():

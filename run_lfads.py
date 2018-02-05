@@ -4,12 +4,8 @@ import util
 import train_lfads
 from lfads import LFADS
 from gaussian_lfads import GaussianEncoder, GaussianGenerator, GaussianController
-
 import os
 import logging
-
-from chainer import cuda, Variable
-import chainer.functions
 import numpy as np
 
 def main(args):
