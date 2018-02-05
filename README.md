@@ -1,5 +1,6 @@
 # LFADS implemented with Chainer (http://chainer.org/)
 Implemenation of [Latent Factor Analysis via Dynamical Systems](https://www.biorxiv.org/content/early/2017/06/20/152884).
+
 MIT license. Contributions welcome.
 
 ## Requirements
