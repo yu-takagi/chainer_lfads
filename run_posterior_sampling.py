@@ -6,7 +6,6 @@ from lfads import LFADS
 from chainer import cuda, Variable
 import chainer.functions as F
 import numpy as np
-import matplotlib.pyplot as plt
 import six
 import h5py
 
@@ -77,21 +76,6 @@ def main(args):
     hf.close()
 
 
-
-    # xs_gen = lfads.generate(dataset,args.n_sample)
-    # print >> sys.stderr, 'Plotting...'
-    # plot(xs_gen,args.model)
-
-def plot(x,name):
-    width = x.shape[0]
-    fig, axis = plt.subplots(1,width, sharex=True, sharey=True)
-    for i, image in enumerate(x):
-        ax = axis[i]
-        ax.imshow(image, cmap=plt.cm.gray)
-        ax.axis('off')
-        ax.set_title('foo')
-    # plt.show()
-    plt.savefig('{}_gen.png'.format(name))
 
 
 if __name__ == '__main__':
