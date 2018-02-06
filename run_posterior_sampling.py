@@ -85,6 +85,6 @@ if __name__ == '__main__':
     parser.add_argument('--batch-size', type=int, default=64, help='batch size(number of samples for averaging )')
     parser.add_argument('--gpu', type=int, default=None, help='GPU ID (default: use CPU)')
     parser.add_argument('--data-path', type=str, default='./data/', help='file directory')
-    parser.add_argument('--data-fname-stem', type=str, default='007_day1', help='filename')
+    parser.add_argument('--data-fname-stem', type=str, default='', help='filename')
 
     main(parser.parse_args())
