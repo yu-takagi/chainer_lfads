@@ -14,6 +14,7 @@ def train(model, dataset, optimizer, dest_dir, batch_size=128, max_epoch=None, g
     :param dataset: training & validation data
     :param optimizer: chainer optimizer
     :param dest_dir: destination directory
+    :param batch_size: number of sample in minibatch
     :param max_epoch: maximum number of epochs to train (None to train indefinitely)
     :param gpu: ID of GPU (None to use CPU)
     :param save_every: save every this number of epochs (first epoch and last epoch are always saved)
@@ -120,8 +121,8 @@ def train(model, dataset, optimizer, dest_dir, batch_size=128, max_epoch=None, g
         status['loss'] = '{:.4}'.format(float(loss.data))      # training loss
         status['alpha'] = alpha
         status['rec_loss'] = '{:.4}'.format(float(rec_loss_total.data))    # reconstruction loss
-        status['kl_g0'] = '{:.4}'.format(float(kl_g0.data))    # KL-divergence loss
-        status['kl_u_total'] = '{:.4}'.format(float(kl_u_total.data))    # KL-divergence loss
+        status['kl_g0'] = '{:.4}'.format(float(kl_g0.data))    # KL-divergence loss for g0
+        status['kl_u_total'] = '{:.4}'.format(float(kl_u_total.data))    # KL-divergence loss for us
         logger.info(_status_str(status))
 
         # # save model

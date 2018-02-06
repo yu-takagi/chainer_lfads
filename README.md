@@ -21,3 +21,6 @@ python run_posterior_sampling.py ./dataset/epoch1000 --gpu 0
 
 ## TODO
 * Implementing a sampling from prior (generation of completely new samples)
+* L2 loss
+* Monitoring validation error during training
+* Preparing datasets and demos for github

@@ -47,7 +47,7 @@ class GaussianGenerator(lfads.Generator):
             log_evar = xp.log(ar_noise_variance,dtype=xp.float32)
             self.log_evar = log_evar
 
-            # \tau, which is the autocorrelation time constant of the AR(1) process
+            # \tau, the autocorrelation time constant of the AR(1) process
             log_atau = xp.log(ar_tau)
 
             # alpha in x_t = \mu + alpha x_tm1 + \eps

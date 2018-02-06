@@ -12,7 +12,7 @@ class Encoder(Chain):
     def __init__(self, **links):
         super(Encoder, self).__init__(**links)
 
-    def __call__(self, xs, label, gpu):
+    def __call__(self, xs, hx):
         raise NotImplementedError
 
 class Controller(Chain):
@@ -20,22 +20,15 @@ class Controller(Chain):
     def __init__(self, **links):
         super(Controller, self).__init__(**links)
 
-    def __call__(self, z, label, ts, gpu):
+    def __call__(self, self, xs, hx):
         raise NotImplementedError
-
-    def generate(self, z, label, gpu, **kwargs):
-        raise NotImplementedError
-
 
 class Generator(Chain):
 
     def __init__(self, **links):
         super(Generator, self).__init__(**links)
 
-    def __call__(self, z, label, ts, gpu):
-        raise NotImplementedError
-
-    def generate(self, z, label, gpu, **kwargs):
+    def __call__(self, xs, hx):
         raise NotImplementedError
 
 class LFADS(Chain):
@@ -49,7 +42,7 @@ class LFADS(Chain):
             generator=generator
         )
 
-    def __call__(self, xs, label_in, ts, label_out,test=False):
+    def __call__(self):
         raise NotImplementedError
 
     def save_model_def(self, model_base_path):
