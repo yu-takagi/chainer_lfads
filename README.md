@@ -1,5 +1,5 @@
-# LFADS implemented with Chainer (http://chainer.org/)
-Implemenation of [Latent Factor Analysis via Dynamical Systems](https://www.biorxiv.org/content/early/2017/06/20/152884).
+# LFADS implemented with Chainer
+Implemenation of [Latent Factor Analysis via Dynamical Systems](https://www.biorxiv.org/content/early/2017/06/20/152884) with [Chainer](https://chainer.org/).
 
 MIT license. Contributions welcome.
 
@@ -7,7 +7,7 @@ MIT license. Contributions welcome.
 python 2.x, chainer 3.3.0, numpy, h5py
 
 ## Train an LFADS model
-You have to prepare the dataset in the "data" directory
+You have to prepare the dataset in the "data" directory.
 ```
 python run_lfads.py dataset --gpu 0 --epoch 1000 --batch-size 64
 ```
