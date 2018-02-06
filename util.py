@@ -63,24 +63,6 @@ def read_data(data_fname):
     print("Cannot open %s for reading." % data_fname)
     raise
 
-def tensor_bxtxn_to_list_t_bxn(tensor_bxtxn):
-  """Convert a numpy tensor with shape BxTxN to a length T list of numpy tensors
-  with shape BxT.
-
-  Args:
-    tensor_bxtxn: The BxTxN numpy tensor.
-
-  Returns:
-    A length T list of numpy tensors with shape BxT.
-  """
-
-  values_t_bxn = []
-  B, T, N = tensor_bxtxn.shape
-  for t in range(T):
-    values_t_bxn.append(np.squeeze(tensor_bxtxn[:,t,:]))
-
-  return values_t_bxn
-
 def get_batch(data_extxd, ext_input_extxi=None, batch_size=None,
               example_idxs=None):
     """Get a batch of data, either randomly chosen, or specified directly.
