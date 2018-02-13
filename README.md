@@ -1,6 +1,7 @@
 # LFADS implemented with Chainer
 Implemenation of [Latent Factor Analysis via Dynamical Systems](https://www.biorxiv.org/content/early/2017/06/20/152884) with [Chainer](https://chainer.org/).
 LFADS is an sequential adaptation of a VAE (Variational Auto-Encoder). It can de-noise and find a low-dimensional representations for time series data. Although it is especially designed for investigating neuroscience data, it can be applied for any time series data.
+
 MIT license. Contributions welcome.
 
 ## Requirements
@@ -20,7 +21,9 @@ python run_posterior_sampling.py ./dataset/epoch1000 --gpu 0
 ```
 
 ## TODO
-* Implementing a sampling from prior (generation of completely new samples)
+* Sampling from prior (generating completely new samples)
 * L2 loss
 * Monitoring validation error during training
 * Preparing datasets and demos for github
+* Sampling from poisson distribution
+* External inputs
