@@ -7,6 +7,7 @@ from gaussian_lfads import GaussianEncoder, GaussianGenerator, GaussianControlle
 import os
 import logging
 import numpy as np
+from chainer import cuda
 
 def main(args):
     if args.gpu is not None:

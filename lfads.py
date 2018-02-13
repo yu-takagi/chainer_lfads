@@ -20,7 +20,7 @@ class Controller(Chain):
     def __init__(self, **links):
         super(Controller, self).__init__(**links)
 
-    def __call__(self, self, xs, hx):
+    def __call__(self, xs, hx):
         raise NotImplementedError
 
 class Generator(Chain):

@@ -68,6 +68,8 @@ def main(args):
             x_hat_i = F.mean(x_hat_i,axis=0)
             x_hat.append(cuda.to_cpu(x_hat_i.data))
         x_hat_all.append(x_hat)
+
+    # save
     hf = h5py.File('data.h5', 'w')
     hf.create_dataset('data', data=x_hat_all)
     hf.flush()

@@ -87,8 +87,8 @@ class GaussianGenerator(lfads.Generator):
         return g_0, kl_g0
 
     def sample_u_1(self, zs, batch_size=0, prior_sample=False):
-        if prior_sample:
-            xp = cuda.cupy
+        xp = cuda.cupy
+        if prior_sample==False:
             mu = self.l_u_mu(zs)
             ln_var = self.l_u_ln_var(zs)
             u_1 = F.gaussian(mu, ln_var)
@@ -101,12 +101,13 @@ class GaussianGenerator(lfads.Generator):
             return u_1, kl_u_1
         else:
             log_pvar = F.tile(self.log_pvar, (batch_size,self.u_dims))
-            u_1 = F.gaussian(0, log_pvar)
-            return u_1, kl_u_1
+            mus = xp.zeros((batch_size,self.g_dims),dtype=xp.float32)
+            u_1 = F.gaussian(Variable(mus), log_pvar)
+            return u_1
 
 
     def sample_u_i(self, zs, ui_prev, batch_size=0, prior_sample=False):
-        if prior_sample:
+        if prior_sample==False:
             mu = self.l_u_mu(zs)
             ln_var = self.l_u_ln_var(zs)
             u_i = F.gaussian(mu, ln_var)
@@ -127,7 +128,7 @@ class GaussianGenerator(lfads.Generator):
         mu = self.l_x_mu(zs)
         ln_var = self.l_x_ln_var(zs)
         x_hat = F.gaussian(mu, ln_var)
-        if calc_rec_loss:
+        if calc_rec_loss == True:
             batchsize = len(mu.data)
             rec_loss = gaussian_nll(xs, mu, ln_var) / batchsize
             return x_hat, rec_loss
