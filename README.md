@@ -20,8 +20,12 @@ python run_lfads.py dataset --gpu 0 --epoch 1000 --batch-size 64
 python run_posterior_sampling.py ./dataset/epoch1000 --gpu 0
 ```
 
+##### Take samokes from prior distribution (generating completely new samples)
+```
+python run_prior_sampling.py ./dataset/epoch1000 --gpu 0
+```
+
 ## TODO
-* Sampling from prior (generating completely new samples)
 * L2 loss
 * Monitoring validation error during training
 * Preparing datasets and demos for github
