@@ -3,7 +3,6 @@ import util
 import os
 from chainer import cuda, Variable
 from lfads import LFADS
-from chainer import cuda, Variable
 import chainer.functions as F
 import numpy as np
 import six
@@ -65,7 +64,7 @@ def main(args):
                 u_i_bxd, _ = model.generator.sample_u_i(con_i,u_i_bxd)
                 g_i_bxd = model.generator(F.concat([g_i_bxd,u_i_bxd],axis=1), hx=g_i_bxd)
             f_i = model.generator.l_f(g_i_bxd)
-            x_hat_i, _ = model.generator.sample_x_hat(Variable(x_data[:,j,:]),f_i)
+            x_hat_i, _ = model.generator.sample_x_hat(f_i,xs=Variable(x_data[:,j,:]))
             x_hat_i = F.mean(x_hat_i,axis=0)
             x_hat.append(cuda.to_cpu(x_hat_i.data))
         x_hat_all.append(x_hat)

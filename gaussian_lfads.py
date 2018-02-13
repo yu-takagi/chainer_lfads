@@ -38,6 +38,7 @@ class GaussianGenerator(lfads.Generator):
             self.l_x_ln_var = L.Linear(None, x_dims)
             self.l_u_mu = L.Linear(None, u_dims)
             self.l_u_ln_var = L.Linear(None, u_dims)
+            self.g_dims = g_dims
             self.u_dims = u_dims
             # self.hoge = L.Linear(1,log_evar_dims)
 
@@ -85,40 +86,53 @@ class GaussianGenerator(lfads.Generator):
         kl_g0 = gaussian_kl_divergence(mu, ln_var) / batchsize
         return g_0, kl_g0
 
-    def sample_u_1(self, zs):
-        xp = cuda.cupy
-        mu = self.l_u_mu(zs)
-        ln_var = self.l_u_ln_var(zs)
-        u_1 = F.gaussian(mu, ln_var)
-        logq = -gaussian_nll(u_1, mu, ln_var)
-        mu_cond = Variable(xp.zeros_like(u_1,dtype=xp.float32))
-        log_pvar = F.tile(self.log_pvar, (u_1.data.shape[0],self.u_dims))
-        logp = -gaussian_nll(u_1, mu_cond, log_pvar)
-        batchsize = len(mu.data)
-        kl_u_1 = (logq - logp) / batchsize
-        return u_1, kl_u_1
+    def sample_u_1(self, zs, batch_size=0, prior_sample=False):
+        if prior_sample:
+            xp = cuda.cupy
+            mu = self.l_u_mu(zs)
+            ln_var = self.l_u_ln_var(zs)
+            u_1 = F.gaussian(mu, ln_var)
+            logq = -gaussian_nll(u_1, mu, ln_var)
+            mu_cond = Variable(xp.zeros_like(u_1,dtype=xp.float32))
+            log_pvar = F.tile(self.log_pvar, (u_1.data.shape[0],self.u_dims))
+            logp = -gaussian_nll(u_1, mu_cond, log_pvar)
+            batchsize = len(mu.data)
+            kl_u_1 = (logq - logp) / batchsize
+            return u_1, kl_u_1
+        else:
+            log_pvar = F.tile(self.log_pvar, (batch_size,self.u_dims))
+            u_1 = F.gaussian(0, log_pvar)
+            return u_1, kl_u_1
 
-    def sample_u_i(self, zs, ui_prev):
-        mu = self.l_u_mu(zs)
-        ln_var = self.l_u_ln_var(zs)
-        u_i = F.gaussian(mu, ln_var)
-        logq = -gaussian_nll(u_i, mu, ln_var)
-        # W = self.hoge.W need reshape
-        # logp = -gaussian_nll(u_i, self.alphas * ui_prev, W*log_evar)
-        log_evar = F.tile(self.log_evar, (u_i.data.shape[0],self.u_dims))
-        logp = -gaussian_nll(u_i, self.alphas * ui_prev, log_evar)
-        batchsize = len(mu.data)
-        kl_u_i = (logq - logp) / batchsize
-        return u_i, kl_u_i
 
-    def sample_x_hat(self, xs, zs):
+    def sample_u_i(self, zs, ui_prev, batch_size=0, prior_sample=False):
+        if prior_sample:
+            mu = self.l_u_mu(zs)
+            ln_var = self.l_u_ln_var(zs)
+            u_i = F.gaussian(mu, ln_var)
+            logq = -gaussian_nll(u_i, mu, ln_var)
+            # W = self.hoge.W need reshape
+            # logp = -gaussian_nll(u_i, self.alphas * ui_prev, W*log_evar)
+            log_evar = F.tile(self.log_evar, (u_i.data.shape[0],self.u_dims))
+            logp = -gaussian_nll(u_i, self.alphas * ui_prev, log_evar)
+            batchsize = len(mu.data)
+            kl_u_i = (logq - logp) / batchsize
+            return u_i, kl_u_i
+        else:
+            log_evar = F.tile(self.log_evar, (batch_size, self.u_dims))
+            u_i =  F.gaussian(self.alphas * ui_prev, log_evar)
+            return u_i
+
+    def sample_x_hat(self, zs, xs=[], calc_rec_loss=True):
         mu = self.l_x_mu(zs)
         ln_var = self.l_x_ln_var(zs)
         x_hat = F.gaussian(mu, ln_var)
-        batchsize = len(mu.data)
-        rec_loss = gaussian_nll(xs, mu, ln_var) / batchsize
-
-        return x_hat, rec_loss
+        if calc_rec_loss:
+            batchsize = len(mu.data)
+            rec_loss = gaussian_nll(xs, mu, ln_var) / batchsize
+            return x_hat, rec_loss
+        else:
+            return x_hat
 
 class GaussianController(lfads.Controller):
 

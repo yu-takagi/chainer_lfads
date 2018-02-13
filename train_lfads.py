@@ -93,7 +93,7 @@ def train(model, dataset, optimizer, dest_dir, batch_size=128, max_epoch=None, g
                 u_i_bxd, kl_u = model.generator.sample_u_i(con_i,u_i_bxd)
                 g_i_bxd = model.generator(F.concat([g_i_bxd,u_i_bxd],axis=1), hx=g_i_bxd)
             f_i = model.generator.l_f(g_i_bxd)
-            x_hat_i, rec_loss_i = model.generator.sample_x_hat(Variable(x_data[:,i,:]),f_i)
+            x_hat_i, rec_loss_i = model.generator.sample_x_hat(f_i,xs=Variable(x_data[:,i,:]))
             x_hat.append(x_hat_i)
             rec_loss_total += rec_loss_i
             kl_u_total += kl_u
