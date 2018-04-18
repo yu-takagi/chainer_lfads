@@ -6,7 +6,7 @@ import pickle
 from chainer import cuda, Variable
 import chainer.functions as F
 import util
-# aiueo
+
 def train(model, dataset, optimizer, dest_dir, batch_size=128, max_epoch=None, gpu=None, save_every=1, alpha_init=1., alpha_delta=0.):
     """Common training procedure.
 
@@ -51,7 +51,6 @@ def train(model, dataset, optimizer, dest_dir, batch_size=128, max_epoch=None, g
 
         # create batches
         x_data, _ = util.get_batch(train_data, batch_size=batch_size)
-        # print x_data.shape
         x_data = x_data.astype(np.float32)
 
         # copy data to GPU
@@ -123,6 +122,50 @@ def train(model, dataset, optimizer, dest_dir, batch_size=128, max_epoch=None, g
         status['rec_loss'] = '{:.4}'.format(float(rec_loss_total.data))    # reconstruction loss
         status['kl_g0'] = '{:.4}'.format(float(kl_g0.data))    # KL-divergence loss for g0
         status['kl_u_total'] = '{:.4}'.format(float(kl_u_total.data))    # KL-divergence loss for us
+
+        # Every ten epochs, try validation set
+        if epoch % 3 == 0:
+            # create batches
+            x_data, _ = util.get_batch(test_data, batch_size=batch_size)
+            x_data = x_data.astype(np.float32)
+
+            # copy data to GPU
+            if gpu is not None:
+                x_data = cuda.to_gpu(x_data)
+
+            # create variable
+            xs = []
+            [xs.append(Variable(x.astype(np.float32))) for x in x_data]
+
+            # encoder
+            _, h_bxtxd = model.encoder(xs)
+            h_bxtxd = F.stack(h_bxtxd,0)
+            d_dims = h_bxtxd.data.shape[2]
+
+            # generator
+            g0_bxd, kl_g0 = model.generator.sample_g0(F.concat([h_bxtxd[:,0,-d_dims/2:],h_bxtxd[:,-1,:d_dims/2]],axis=1))
+            f0_bxd = model.generator.l_f(g0_bxd)
+
+            # controller
+            x_hat = []
+            kl_u_total = 0
+            rec_loss_total = 0
+
+            for i in range(0, h_bxtxd[0].data.shape[0]):
+                if i == 0:
+                    con_i = model.controller(F.concat((f0_bxd, h_bxtxd[:,i,:d_dims/2],h_bxtxd[:,i,d_dims/2:]),axis=1))
+                    u_i_bxd, kl_u = model.generator.sample_u_1(con_i)
+                    g_i_bxd = model.generator(F.concat([g0_bxd,u_i_bxd],axis=1))
+                else:
+                    con_i = model.controller(F.concat([f_i, h_bxtxd[:,i,:d_dims/2],h_bxtxd[:,i,d_dims/2:]],axis=1), hx=con_i)
+                    u_i_bxd, kl_u = model.generator.sample_u_i(con_i,u_i_bxd)
+                    g_i_bxd = model.generator(F.concat([g_i_bxd,u_i_bxd],axis=1), hx=g_i_bxd)
+                f_i = model.generator.l_f(g_i_bxd)
+                x_hat_i, rec_loss_i = model.generator.sample_x_hat(f_i,xs=Variable(x_data[:,i,:]))
+                x_hat.append(x_hat_i)
+                rec_loss_total += rec_loss_i
+                kl_u_total += kl_u
+
         logger.info(_status_str(status))
 
         # # save model
