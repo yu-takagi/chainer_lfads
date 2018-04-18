@@ -6,7 +6,7 @@ import pickle
 from chainer import cuda, Variable
 import chainer.functions as F
 import util
-
+# aiueo
 def train(model, dataset, optimizer, dest_dir, batch_size=128, max_epoch=None, gpu=None, save_every=1, alpha_init=1., alpha_delta=0.):
     """Common training procedure.
 
