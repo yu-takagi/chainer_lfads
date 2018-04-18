@@ -165,10 +165,11 @@ def train(model, dataset, optimizer, dest_dir, batch_size=128, max_epoch=None, g
                 x_hat.append(x_hat_i)
                 rec_loss_total += rec_loss_i
                 kl_u_total += kl_u
-                status['test_loss'] = '{:.4}'.format(float(loss.data))      # training loss
-                status['test_rec_loss'] = '{:.4}'.format(float(rec_loss_total.data))    # reconstruction loss
-                status['test_kl_g0'] = '{:.4}'.format(float(kl_g0.data))    # KL-divergence loss for g0
-                status['test_kl_u_total'] = '{:.4}'.format(float(kl_u_total.data))    # KL-divergence loss for us
+            loss = kl_g0 + kl_u_total + rec_loss_total
+            status['test_loss'] = '{:.4}'.format(float(loss.data))      # training loss
+            status['test_rec_loss'] = '{:.4}'.format(float(rec_loss_total.data))    # reconstruction loss
+            status['test_kl_g0'] = '{:.4}'.format(float(kl_g0.data))    # KL-divergence loss for g0
+            status['test_kl_u_total'] = '{:.4}'.format(float(kl_u_total.data))    # KL-divergence loss for us
 
         logger.info(_status_str(status))
 

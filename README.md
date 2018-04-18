@@ -27,7 +27,6 @@ python run_prior_sampling.py ./dataset/epoch1000 --gpu 0
 
 ## TODO
 * L2 loss
-* Monitoring validation error during training
 * Preparing datasets and demos for github
 * Sampling from poisson distribution
 * External inputs
