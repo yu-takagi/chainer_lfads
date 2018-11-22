@@ -9,7 +9,6 @@ from chainer.functions import gaussian_kl_divergence
 from chainer.functions import gaussian_nll
 from chainer.functions.math import exponential
 from chainer import cuda, Variable
-import cupy
 
 class GaussianEncoder(lfads.Encoder):
 
@@ -25,8 +24,8 @@ class GaussianEncoder(lfads.Encoder):
 
 class GaussianGenerator(lfads.Generator):
     def __init__(self, in_size, hidden_dims,
-                 f_dims, g_dims, x_dims, u_dims,
-                 ar_tau, ar_noise_variance,batch_size):
+                 f_dims, g_dims, x_dims,
+                 ar_tau, ar_noise_variance,batch_size,xp):
         super(GaussianGenerator, self).__init__()
         with self.init_scope():
             self.hidden_dims = hidden_dims
@@ -36,16 +35,14 @@ class GaussianGenerator(lfads.Generator):
             self.l_f = L.Linear(None, f_dims)
             self.l_x_mu = L.Linear(None, x_dims)
             self.l_x_ln_var = L.Linear(None, x_dims)
-            self.l_u_mu = L.Linear(None, u_dims)
-            self.l_u_ln_var = L.Linear(None, u_dims)
+            self.l_u_mu = L.Linear(None, in_size)
+            self.l_u_ln_var = L.Linear(None, in_size)
             self.g_dims = g_dims
-            self.u_dims = u_dims
+            self.u_dims = in_size
             # self.hoge = L.Linear(1,log_evar_dims)
 
-            xp = cuda.cupy
-
             # process variance, the variance at time t over all instantiations of AR(1)
-            log_evar = xp.log(ar_noise_variance,dtype=xp.float32)
+            log_evar = F.log(xp.asarray(ar_noise_variance,dtype=xp.float32))
             self.log_evar = log_evar
 
             # \tau, the autocorrelation time constant of the AR(1) process
@@ -56,8 +53,8 @@ class GaussianGenerator(lfads.Generator):
             # alpha = exp(-1/exp(logtau))
             # alpha = exp(-exp(-logtau))
             alphas = xp.exp(-xp.exp(-log_atau),dtype=xp.float32)
-            alphas_p1 = xp.array(1.0 + alphas)
-            alphas_m1 = xp.array(1.0 - alphas)
+            alphas_p1 = xp.array(xp.float32(1.0) + alphas)
+            alphas_m1 = xp.array(xp.float32(1.0) - alphas)
             self.alphas = alphas
 
             # process noise
@@ -65,12 +62,11 @@ class GaussianGenerator(lfads.Generator):
             # logpvar = log ( exp(logevar) / (1 - alpha^2) )
             # logpvar = logevar - log(1-alpha^2)
             # logpvar = logevar - (log(1-alpha) + log(1+alpha))
-            log_pvar = log_evar - F.log(alphas_m1)
-            log_pvar = log_evar - F.log(alphas_m1) - F.log(alphas_p1)
+            log_pvar = log_evar - xp.log(alphas_m1) - xp.log(alphas_p1)
             self.log_pvar = log_pvar
 
     def __call__(self, xs, hx=None):
-        xp = cuda.cupy
+        xp = cuda.get_array_module(xs)
         if hx is None:
             hx = Variable(xp.zeros((xs.data.shape[0],self.hidden_dims), dtype=xp.float32))
             hy = self.gru(h=hx, x=xs)
@@ -87,11 +83,14 @@ class GaussianGenerator(lfads.Generator):
         return g_0, kl_g0
 
     def sample_u_1(self, zs, batch_size=0, prior_sample=False):
-        xp = cuda.cupy
+        xp = cuda.get_array_module(zs)
         if prior_sample==False:
+            # sampling
             mu = self.l_u_mu(zs)
             ln_var = self.l_u_ln_var(zs)
             u_1 = F.gaussian(mu, ln_var)
+
+            # calculate kl
             logq = -gaussian_nll(u_1, mu, ln_var)
             mu_cond = Variable(xp.zeros_like(u_1,dtype=xp.float32))
             log_pvar = F.tile(self.log_pvar, (u_1.data.shape[0],self.u_dims))
@@ -100,17 +99,21 @@ class GaussianGenerator(lfads.Generator):
             kl_u_1 = (logq - logp) / batchsize
             return u_1, kl_u_1
         else:
+            # sampling
             log_pvar = F.tile(self.log_pvar, (batch_size,self.u_dims))
-            mus = xp.zeros((batch_size,self.g_dims),dtype=xp.float32)
+            mus = xp.zeros((batch_size,self.u_dims),dtype=xp.float32)
             u_1 = F.gaussian(Variable(mus), log_pvar)
             return u_1
 
 
     def sample_u_i(self, zs, ui_prev, batch_size=0, prior_sample=False):
         if prior_sample==False:
+            # sampling
             mu = self.l_u_mu(zs)
             ln_var = self.l_u_ln_var(zs)
             u_i = F.gaussian(mu, ln_var)
+
+            # calculate kl
             logq = -gaussian_nll(u_i, mu, ln_var)
             # W = self.hoge.W need reshape
             # logp = -gaussian_nll(u_i, self.alphas * ui_prev, W*log_evar)
@@ -120,20 +123,25 @@ class GaussianGenerator(lfads.Generator):
             kl_u_i = (logq - logp) / batchsize
             return u_i, kl_u_i
         else:
+            # sampling
             log_evar = F.tile(self.log_evar, (batch_size, self.u_dims))
             u_i =  F.gaussian(self.alphas * ui_prev, log_evar)
             return u_i
 
-    def sample_x_hat(self, zs, xs=[], calc_rec_loss=True):
+    def sample_x_hat(self, zs, xs=[], nrep=1,calc_rec_loss=True):
         mu = self.l_x_mu(zs)
         ln_var = self.l_x_ln_var(zs)
-        x_hat = F.gaussian(mu, ln_var)
+        x_hat = []
+        for i in range(0,nrep):
+            x_hat.append(F.gaussian(mu, ln_var))
+        x_hat = F.mean(F.vstack(x_hat),axis=0)
         if calc_rec_loss == True:
             batchsize = len(mu.data)
             rec_loss = gaussian_nll(xs, mu, ln_var) / batchsize
             return x_hat, rec_loss
         else:
             return x_hat
+
 
 class GaussianController(lfads.Controller):
 
@@ -144,7 +152,7 @@ class GaussianController(lfads.Controller):
             self.gru = L.StatelessGRU(in_size=in_size, out_size=hidden_dims)
 
     def __call__(self, xs, hx=None):
-        xp = cuda.cupy
+        xp = cuda.get_array_module(xs)
         if hx is None:
             hx = Variable(xp.zeros((xs.data.shape[0],self.hidden_dims), dtype=xp.float32))
             hy = self.gru(h=hx, x=xs)

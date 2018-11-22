@@ -31,14 +31,49 @@ class Generator(Chain):
     def __call__(self, xs, hx):
         raise NotImplementedError
 
+class LFADS_full(Chain):
+
+    MODEL_DEF_NAME = 'model_def_full.pickle'
+
+    def __init__(self, encoder, controller, generator):
+        super(LFADS_full, self).__init__(
+            encoder=encoder,
+            controller=controller,
+            generator=generator
+        )
+
+    def __call__(self):
+        raise NotImplementedError
+
+    def save_model_def(self, model_base_path):
+        obj = copy.deepcopy(self)
+        for p in obj.params():
+            p.data = None
+        path = os.path.join(model_base_path, self.MODEL_DEF_NAME)
+        with open(path, 'wb') as f:
+            pickle.dump(self, f)
+
+    def save(self, model_base_path, epoch):
+        assert os.path.exists(os.path.join(model_base_path, self.MODEL_DEF_NAME)), 'Must call save_model_def() first'
+        model_path = os.path.join(model_base_path, 'epoch{}_full'.format(epoch))
+        save_hdf5(model_path, self)
+
+    @classmethod
+    def load(cls, path):
+        model_base_path = os.path.dirname(path)
+        model_def_path = os.path.join(model_base_path, cls.MODEL_DEF_NAME)
+        with open(model_def_path, 'rb') as f:
+            model = pickle.load(f)  # load model definition
+            load_hdf5(path, model)  # load parameters
+        return model
+
 class LFADS(Chain):
 
     MODEL_DEF_NAME = 'model_def.pickle'
 
-    def __init__(self, encoder, controller, generator):
+    def __init__(self, encoder, generator):
         super(LFADS, self).__init__(
             encoder=encoder,
-            controller=controller,
             generator=generator
         )
 
