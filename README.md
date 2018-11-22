@@ -39,7 +39,7 @@ python run_lfads.py /path/to/dataset --gpu 0 --epoch 1000 --batch-size 64
 ```
 python run_posterior_sampling.py /path/to/trained/model --gpu 0 --nsample 5
 ```
-An example reconstructed time series.
+An example reconstructed time series. The dimension of latent factor is 3, which is much lower than the dimension of observed time course (20).
 ![mixed](./fig/observe_hat.png)
 
 An example estimated factor.
