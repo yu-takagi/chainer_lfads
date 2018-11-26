@@ -4,6 +4,8 @@ LFADS is a sequential adaptation of a VAE (Variational Auto-Encoder). It can de-
 
 MIT license. Contributions welcome.
 
+This is the [blog post (only in Japanese)](http://tk-g.hatenablog.jp/entry/2018/11/26/000000) about this repository.
+
 ## Requirements
 python 2.x, chainer 3.3.0, numpy, h5py
 
